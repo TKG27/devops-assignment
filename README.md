@@ -187,7 +187,6 @@ kubectl get applications -n argocd
 
 <img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215244.png" width="1000">
 
-<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215244.png" width="1000">
 
 ---
 
