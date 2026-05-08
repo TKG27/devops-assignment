@@ -1,27 +1,27 @@
-# DevOps GitOps Assignment using Terraform, EKS, Kubernetes and ArgoCD
+# DevOps GitOps Assignment
 
 ## Project Overview
 
-This project demonstrates a complete GitOps-based Kubernetes deployment workflow using:
+This project demonstrates a complete GitOps workflow using:
 
-- Terraform for Infrastructure as Code
-- AWS EKS for Kubernetes Cluster
-- Kubernetes manifests for NGINX deployment
-- ArgoCD for GitOps Continuous Deployment
-- NGINX Ingress Controller for external access
+- Terraform
+- AWS EKS
+- Kubernetes
+- ArgoCD
+- NGINX Ingress Controller
+- GitHub
+
+The infrastructure is provisioned using Terraform, applications are deployed on Kubernetes, and ArgoCD is used to implement GitOps-based continuous deployment.
 
 ---
 
-# Project Structure
+# Architecture Workflow
 
-devops-assignment/
-│
-├── terraform/      # EKS Infrastructure Code
-├── manifests/      # Kubernetes Deployment & Service
-├── argocd/         # ArgoCD Application YAML
-├── ingress/        # Ingress Configuration
-└── README.md
+```text
+Developer → GitHub Repository → ArgoCD → Kubernetes Cluster (EKS) → NGINX Application
+```
 
+---
 
 # Technologies Used
 
@@ -31,29 +31,44 @@ devops-assignment/
 - ArgoCD
 - NGINX
 - GitHub
+- AWS Load Balancer
 
-
-# Step 1: Provision EKS Cluster
-
-cd terraform
-
-terraform init
-terraform plan
-terraform apply -auto-approve
-
-
-## EKS Cluster Created
-
-<img width="1000" alt="eks cluster" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20201213.png">
-
-
-<img width="1000" alt="eks cluster" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20203033.png">
-
-
-<img width="1000" alt="eks cluster" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20203131.png">
 ---
 
-# Step 2: Configure kubectl
+# Terraform Infrastructure
+
+The `terraform/` folder contains Terraform code used to provision:
+
+- AWS EKS Cluster
+- Managed Node Group
+- IAM Roles
+- Networking Configuration
+
+---
+
+# Cluster Provisioning Steps
+
+## Initialize Terraform
+
+```bash
+terraform init
+```
+
+## Review Terraform Plan
+
+```bash
+terraform plan
+```
+
+## Create EKS Cluster
+
+```bash
+terraform apply -auto-approve
+```
+
+---
+
+# Configure kubectl
 
 ```bash
 aws eks update-kubeconfig \
@@ -61,71 +76,206 @@ aws eks update-kubeconfig \
 --name devops-assignment-cluster
 ```
 
-## kubectl get nodes
-
-<img width="1000" alt="kubectl nodes" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20204438.png">
-
----
-
-# Step 3: Deploy NGINX Application
+## Verify Nodes
 
 ```bash
-kubectl apply -f manifests/deployment.yaml
-kubectl apply -f manifests/service.yaml
+kubectl get nodes
 ```
 
+### EKS Cluster and Worker Nodes
 
-# Step 4: Install and Configure ArgoCD
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20201213.png" width="1000">
+
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20204438.png" width="1000">
+---
+
+# Kubernetes Manifests
+
+The `manifests/` folder contains:
+
+- NGINX Deployment
+- Kubernetes Service
+
+## Deploy Application
+
+```bash
+kubectl apply -f manifests/
+```
+
+## Verify Pods
+
+```bash
+kubectl get pods
+```
+
+### Running NGINX Pods
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20203033.png" width="1000">
+
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20203131.png" width="1000">
+---
+
+# Install ArgoCD
+
+## Create Namespace
 
 ```bash
 kubectl create namespace argocd
+```
 
+## Install ArgoCD
+
+```bash
 kubectl apply -n argocd \
 -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
 ---
 
-# Step 5: Create ArgoCD Application
+# ArgoCD Login Instructions
+
+## Port Forward ArgoCD Server
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 9090:443
+```
+
+## Get Initial Admin Password
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret \
+-o jsonpath="{.data.password}" | base64 -d
+```
+
+## Access ArgoCD UI
+
+```text
+https://127.0.0.1:9090
+```
+
+## Default Username
+
+```text
+admin
+```
+
+### ArgoCD Login Page
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20210611.png" width="1000">
+
+---
+
+# ArgoCD Configuration
+
+The `argocd/` folder contains the ArgoCD Application manifest used for GitOps synchronization.
+
+## Create ArgoCD Application
 
 ```bash
 kubectl apply -f argocd/application.yaml
 ```
 
-## ArgoCD Application Synced
+## Verify Application
 
-<img width="1000" alt="argocd synced" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215244.png">
+```bash
+kubectl get applications -n argocd
+```
 
+### ArgoCD Application Synced Successfully
 
-<img width="1000" alt="argocd synced" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215256.png">
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215244.png" width="1000">
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215244.png" width="1000">
+
 ---
 
-# Step 6: Configure Ingress
+# Ingress Configuration
+
+NGINX Ingress Controller was deployed using AWS LoadBalancer service to expose the application publicly.
+
+## Deploy Ingress Resource
 
 ```bash
 kubectl apply -f ingress/ingress.yaml
 ```
 
-## Public NGINX Access using Ingress
+## Verify Ingress
 
-<img width="1000" alt="public nginx" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20221824.png">
+```bash
+kubectl get ingress
+```
 
+### Ingress Resource
 
-
-<img width="1000" alt="public nginx" src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20221804.png">
-
----
-
-# GitOps Demonstration
-
-Updated deployment replicas from 2 to 3 and pushed changes to GitHub.
-
-ArgoCD automatically synchronized the changes to the Kubernetes cluster.
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20221804.png" width="1000">
 
 ---
 
+# Access NGINX Application
 
+## Example Ingress URL
+
+```text
+http://a83512bccbb024d739c8210fe09118d2-1132929605.ap-south-1.elb.amazonaws.com
+```
+
+### NGINX Application Running Successfully
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20221824.png" width="1000">
+
+---
+
+# GitOps Workflow Demonstration
+
+Updated deployment replicas from:
+
+```yaml
+replicas: 2
+```
+
+to
+
+```yaml
+replicas: 3
+```
+
+Changes were pushed to GitHub repository and ArgoCD automatically synchronized the Kubernetes cluster.
+
+### GitOps Synchronization Demonstration
+
+<img src="https://github.com/TKG27/devops-assignment/blob/main/screenshots/Screenshot%202026-05-08%20215256.png" width="1000">
+
+---
+
+# Repository Structure
+
+```text
+devops-assignment/
+├── terraform/
+├── manifests/
+├── argocd/
+├── ingress/
+├── screenshots/
+└── README.md
+```
+
+---
+
+# Screenshots Included
+
+- EKS Cluster Creation
+- Kubernetes Nodes
+- Running Pods
+- ArgoCD Login
+- ArgoCD Application Sync
+- Ingress Configuration
+- NGINX Application Access
+- GitOps Synchronization
+
+---
 
 # Author
 
-Tushar Gadgade  
+Tushar Gadgade
