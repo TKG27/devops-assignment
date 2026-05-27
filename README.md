@@ -1,4 +1,4 @@
-# DevOps GitOps Assignment
+# DevOps-AWS-Project
 
 ## Project Overview
 
